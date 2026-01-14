@@ -1,0 +1,57 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+:root {
+  --bg-dark: #0b0e17;
+  --bg-gradient: radial-gradient(circle at left, #3b2d63, #0b0e17 60%);
+  --nav-bg: rgba(15, 18, 35, 0.8);
+
+  --accent: #6d5dfc;
+  --accent-soft: #8b7cff;
+
+  --text-main: #ffffff;
+  --text-muted: #b6b8d6;
+
+  --glass-bg: rgba(255, 255, 255, 0.06);
+  --glass-border: rgba(255, 255, 255, 0.12);
+}
+
+body{
+  background: var(--bg-gradient);
+  color: var(--text-main);
+  min-height: 100vh;
+}
+
+.navbar{
+    /* background-color: whitesmoke; */
+    height: 80px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: var(--nav-bg);
+  backdrop-filter: blur(10px);
+}
+.msg{
+    color: grey;
+    font-size: 1.7rem;
+    font-weight: 700;
+}
+.list>ul,a{
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    text-decoration: none;
+    gap: 50px;
+    color: grey;
+}
+.hero-image img{
+    width: 100%;
+    object-fit: cover;
+}
+.hero-image {
+  mask-image: linear-gradient(to left, black 80%, transparent);
+  -webkit-mask-image: linear-gradient(to left, black 80%, transparent);
+}
