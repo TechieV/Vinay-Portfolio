@@ -1,0 +1,202 @@
+/* ========================= */
+/* YOUR BASE STYLES (UNCHANGED) */
+/* ========================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+  color: #b6b8d6;
+}
+
+html, body {
+  overflow-x: hidden;
+}
+
+:root {
+  --accent: #6d5dfc;
+}
+
+/* ========================= */
+/* YOUR HERO */
+/* ========================= */
+.hero {
+  background-image: url("./assets/final_hero.png");
+  background-size: cover;
+  height: 100vh;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 80px 1fr;
+}
+
+/* ========================= */
+/* YOUR NAVBAR */
+/* ========================= */
+nav {
+  grid-column: 1 / -1;
+}
+
+.navbar {
+  height: 80px;
+  padding: 0 80px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.msg {
+  font-size: 1.7rem;
+  font-weight: 700;
+}
+
+.list {
+  display: flex;
+  gap: 50px;
+  list-style: none;
+}
+
+.list a {
+  text-decoration: none;
+}
+
+.hero-msg {
+  padding: 40px;
+  margin-top: 25%;
+  margin-left: 4%;
+}
+
+.hero p:first-of-type {
+  font-size: 100px;
+  line-height: 85px;
+  font-weight: 800;
+}
+
+.hero p:last-of-type {
+  margin-top: 30px;
+  width: 85%;
+  margin-bottom: 40px;
+}
+
+.hero-msg button,
+.cv button {
+  height: 40px;
+  width: 120px;
+  margin-right: 20px;
+  background: transparent;
+  border: 1px solid var(--accent);
+  border-radius: 50px;
+  transition: 0.25s;
+}
+
+/* ========================= */
+/* 🔥 MY ADDITION: HAMBURGER */
+/* ========================= */
+.hamburger {
+  display: none;
+  font-size: 30px;
+  cursor: pointer;
+}
+
+/* ========================= */
+/* 🔥 MY ADDITION: MOBILE SIDEBAR */
+/* ========================= */
+.mobile-menu {
+  position: fixed;
+  top: 80px;
+  right: -100%;
+  width: 220px;
+  height: calc(100vh - 80px);
+  background: #0b0e17;
+  display: flex;
+  flex-direction: column;
+  padding: 30px;
+  gap: 25px;
+  transition: 0.3s ease;
+}
+
+.mobile-menu a {
+  text-decoration: none;
+  font-size: 1.1rem;
+}
+
+/* ACTIVE STATE */
+.mobile-menu.active {
+  right: 0;
+}
+
+/* ========================= */
+/* 🔥 MY ADDITION: RESPONSIVE */
+/* ========================= */
+@media (max-width: 768px) {
+
+  /* hide desktop nav */
+  .list,
+  .cv {
+    display: none;
+  }
+
+  /* show hamburger */
+  .hamburger {
+    display: block;
+  }
+
+  /* hero layout */
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-msg {
+    margin: 0;
+    text-align: center;
+  }
+
+  .hero p:first-of-type {
+    font-size: 60px;
+    line-height: 60px;
+  }
+
+  .hero p:last-of-type {
+    width: 100%;
+  }
+}
+/* ========================= */
+/* 🔥 MY ADDITION: MOBILE IMAGE + HERO FIX */
+/* ========================= */
+@media (max-width: 768px) {
+
+  /* Keep desktop untouched */
+  .hero {
+    grid-template-columns: 1fr;     /* single column */
+    grid-template-rows: 80px auto;  /* navbar + content */
+
+    /* 🔥 show face properly */
+    background-position:top center;
+    background-size: cover;
+  }
+
+  /* 🔥 give space for face */
+  .hero::before {
+    content: "";
+    display: block;
+    height: 45vh;   /* controls image visibility */
+  }
+
+  /* 🔥 hero text comes AFTER image */
+  .hero-msg {
+    margin: 0;
+    padding: 30px 20px;
+    text-align: center;
+  }
+
+  /* 🔥 scale heading */
+  .hero p:first-of-type {
+    font-size: 60px;
+    line-height: 60px;
+  }
+
+  .hero p:last-of-type {
+    width: 100%;
+  }
+}
