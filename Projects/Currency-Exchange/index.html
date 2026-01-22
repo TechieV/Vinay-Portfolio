@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Currency Converter</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- FontAwesome for icon -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" crossorigin="anonymous" />
+</head>
+<body>
+  <main>
+    <div class="container">
+      <h1>Currency Converter</h1>
+      <form>
+        <div class="amount">
+          <input type="number" placeholder="Enter amount" id="amount" min="0">
+        </div>
+        <div class="dropdowns">
+          <!-- From Section -->
+          <div class="From">
+            <h2>From</h2>
+            <div class="select-container">
+              <select name="from" id="from"></select>
+              <img class="flag-img fromImg" src="https://flagsapi.com/US/shiny/64.png" alt="From Flag">
+            </div>
+            <p class="from-country"></p>
+          </div>
+          <i class="fa-solid fa-arrow-right-arrow-left"></i>
+          <!-- To Section -->
+          <div class="To">
+            <h2>To</h2>
+            <div class="select-container">
+              <select name="to" id="to"></select>
+              <img class="flag-img toImg" src="https://flagsapi.com/IN/shiny/64.png" alt="To Flag">
+            </div>
+            <p class="to-country"></p>
+          </div>
+        </div>
+        <div class="msg"><p></p></div>
+        <div class="btnContainer"><button class="btn" type="button">Get Exchange</button></div>
+      </form>
+    </div>
+  </main>
+  <script src="codes.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>IPU Result Portal</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #e2e8f0;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    min-height: 100vh;
+    margin: 0;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center alignment */
+}
+
+/* Page Layout */
+.page-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-height: 90vh;
+}
+
+.container {
+    background: #1e293b;
+    padding: 2rem;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    border: 1px solid #334155;
+}
+
+/* Typography & Inputs */
+h2 {
+    text-align: center;
+    color: #38bdf8;
+    margin: 0 0 1.5rem 0;
+    font-size: 1.5rem;
+}
+
+.input-group { margin-bottom: 1rem; }
+.input-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #cbd5e1;
+    font-size: 0.9rem;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    background: #334155;
+    border: 1px solid #475569;
+    color: white;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: border-color 0.3s;
+}
+input:focus {
+    outline: none;
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
+}
+
+/* Captcha */
+.captcha-container { margin-bottom: 1rem; }
+.captcha-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: #ffffff;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
+}
+.captcha-box img { height: 50px; max-width: 100%; border-radius: 4px; }
+
+.refresh {
+    background: #475569;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: background 0.3s;
+    min-width: 50px;
+}
+.refresh:hover { background: #64748b; }
+
+/* Buttons */
+button {
+    width: 100%;
+    padding: 12px;
+    background: #38bdf8;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s;
+    color: #0f172a;
+}
+button:hover { background: #0ea5e9; }
+button:disabled { background: #64748b; cursor: not-allowed; opacity: 0.6; }
+
+/* Status & Validation */
+.status {
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    min-height: 1.5rem;
+}
+.error { color: #ef4444; }
+.success { color: #4ade80; }
+.info { color: #38bdf8; }
+
+.validation-error {
+    color: #ef4444;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+    display: none;
+}
+.validation-error.show { display: block; }
+
+/* RESULT VIEW LAYOUT */
+#resultView {
+    max-width: 1200px;
+    width: 100%;
+    margin-inline: auto; /* Center the view */
+    display: none;
+}
+
+.result-header {
+    background: #1e293b;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    border: 1px solid #334155;
+}
+
+.result-actions {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.result-actions button { flex: 1; min-width: 200px; max-width: 300px; }
+.back-btn { background: #475569; color: white; }
+.back-btn:hover { background: #64748b; }
+
+.student-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.info-item {
+    background: #334155;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: left; /* Keep text readable */
+}
+
+.info-label {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+}
+.info-value { color: #e2e8f0; font-size: 1.1rem; font-weight: 600; }
+
+.lateral-badge {
+    display: inline-block;
+    background: #f59e0b;
+    color: #0f172a;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    vertical-align: middle;
+    margin-left: 10px;
+}
+
+/* Semester Tabs */
+.semester-selector {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+    justify-content: center; /* Center buttons */
+}
+.sem-btn {
+    padding: 0.75rem 1.5rem;
+    background: #334155;
+    border: 2px solid #475569;
+    color: #e2e8f0;
+    width: auto;
+}
+.sem-btn.active {
+    background: #38bdf8;
+    border-color: #38bdf8;
+    color: #0f172a;
+}
+
+/* Result Card */
+.result-card {
+    background: #1e293b;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #334155;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.subjects-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #0f172a;
+    border-radius: 8px;
+    white-space: nowrap; /* Prevent awkward wrapping */
+}
+
+.subjects-table th {
+    background: #334155;
+    color: #38bdf8;
+    padding: 1rem;
+    text-align: left;
+}
+.subjects-table td {
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid #334155;
+    color: #e2e8f0;
+}
+.subjects-table tr:hover td { background: #1e293b; }
+
+/* Grade Colors (GGSIPU Specific) */
+.grade-badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+.grade-O { background: #10b981; color: white; }    /* 90-100 */
+.grade-A-plus { background: #34d399; color: #064e3b; } /* 75-89 */
+.grade-A { background: #3b82f6; color: white; }    /* 65-74 */
+.grade-B-plus { background: #60a5fa; color: #1e3a8a; } /* 55-64 */
+.grade-B { background: #f59e0b; color: white; }    /* 50-54 */
+.grade-C { background: #fbbf24; color: #451a03; }  /* 45-49 */
+.grade-P { background: #a8a29e; color: white; }    /* 40-44 */
+.grade-F { background: #ef4444; color: white; }    /* Fail */
+
+/* Footer Summary */
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #334155;
+}
+.summary-item {
+    background: #334155;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+.summary-value {
+    color: #38bdf8;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+@media print {
+    body { background: white; color: black; }
+    .page-container, .result-actions, .semester-selector { display: none !important; }
+    #resultView { display: block; }
+    .result-card { border: 1px solid #ccc; box-shadow: none; break-inside: avoid; }
+    .subjects-table th { background: #eee; color: black; border-bottom: 2px solid #000; }
+    .subjects-table td { color: black; border-bottom: 1px solid #ccc; }
+    .grade-badge { border: 1px solid #000; background: none !important; color: black !important; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="page-container" id="loginPage">
+    <div class="container" id="loginCard">
+        <h2>Student Login</h2>
+
+        <div class="input-group">
+            <label for="enrollment">Enrollment Number</label>
+            <input id="enrollment" type="number" placeholder="Enter your enrollment number" autocomplete="off">
+            <div class="validation-error" id="enrollmentError">Please enter enrollment number</div>
+        </div>
+
+        <div class="input-group">
+            <label for="father">Father's Name / Password</label>
+            <input id="father" type="password" placeholder="Enter Password" autocomplete="off">
+            <div class="validation-error" id="fatherError">Please enter password</div>
+        </div>
+
+        <div class="captcha-container">
+            <label>Captcha Verification</label>
+            <div class="captcha-box">
+                <img id="captchaImg" alt="Captcha" style="display:none;">
+                <div id="captchaLoading" style="padding: 1rem; color: #64748b;">Loading...</div>
+                <button class="refresh" onclick="refreshCaptcha()" title="Refresh Captcha">↻</button>
+            </div>
+            <input id="captchaCode" placeholder="Enter the captcha code">
+            <div class="validation-error" id="captchaError">Please enter captcha code</div>
+        </div>
+
+        <button id="loginBtn" onclick="submitLogin()">Get Result</button>
+        <div class="status" id="statusMsg"></div>
+    </div>
+</div>
+
+<div id="resultView">
+    <div class="result-actions">
+        <button class="back-btn" onclick="location.reload()">← Logout</button>
+        <button onclick="exportCurrentSemester()">📄 Export Semester PDF</button>
+    </div>
+
+    <div class="result-header" id="studentHeader"></div>
+    
+    <div class="semester-selector" id="semesterSelector"></div>
+    
+    <div id="resultContent"></div>
+</div>
+
+<script>
+// Use empty string if setting up CORS proxy, or full URL for direct backend access
+const API = "https://ipu-result-backend.onrender.com"; 
+let fullResultData = null;
+let currentSemester = null;
+let groupedData = {};
+
+window.onload = loadCaptcha;
+
+async function loadCaptcha() {
+    setStatus("Loading captcha...", "info");
+    try {
+        const res = await fetch(API + "/api/init-session");
+        const data = await res.json();
+        
+        if (data.success) {
+            const img = document.getElementById("captchaImg");
+            img.src = "data:image/png;base64," + data.captcha_image;
+            img.style.display = "block";
+            document.getElementById("captchaLoading").style.display = "none";
+            setStatus("Ready to login", "success");
+        } else {
+            throw new Error(data.message || "Failed to load captcha");
+        }
+    } catch (error) {
+        setStatus("Failed to load captcha. Refresh page.", "error");
+    }
+}
+
+async function refreshCaptcha() {
+    document.getElementById("captchaCode").value = "";
+    clearValidation("captchaError");
+    const img = document.getElementById("captchaImg");
+    img.style.display = "none";
+    document.getElementById("captchaLoading").style.display = "block";
+    
+    try {
+        const res = await fetch(API + "/api/refresh-captcha");
+        const data = await res.json();
+        if (data.success) {
+            img.src = "data:image/png;base64," + data.captcha_image;
+            img.style.display = "block";
+            document.getElementById("captchaLoading").style.display = "none";
+            setStatus("Captcha refreshed", "info");
+        }
+    } catch (error) {
+        setStatus("Failed to refresh captcha", "error");
+    }
+}
+
+function validateForm() {
+    let isValid = true;
+    const enrollment = document.getElementById("enrollment").value.trim();
+    const father = document.getElementById("father").value.trim();
+    const captcha = document.getElementById("captchaCode").value.trim();
+    
+    clearAllValidation();
+    
+    if (!enrollment) { showValidation("enrollmentError", "Required"); isValid = false; }
+    if (!father) { showValidation("fatherError", "Required"); isValid = false; }
+    if (!captcha) { showValidation("captchaError", "Required"); isValid = false; }
+    
+    return isValid;
+}
+
+function showValidation(elementId, message) {
+    const element = document.getElementById(elementId);
+    element.textContent = message;
+    element.classList.add("show");
+}
+
+function clearValidation(elementId) {
+    document.getElementById(elementId).classList.remove("show");
+}
+
+function clearAllValidation() {
+    clearValidation("enrollmentError");
+    clearValidation("fatherError");
+    clearValidation("captchaError");
+}
+
+async function submitLogin() {
+    if (!validateForm()) return;
+    
+    const btn = document.getElementById("loginBtn");
+    btn.disabled = true;
+    setStatus("Verifying credentials...", "info");
+
+    const payload = {
+        enrollment: document.getElementById("enrollment").value.trim(),
+        father_name: document.getElementById("father").value.trim(), // Sent as is
+        captcha: document.getElementById("captchaCode").value.trim()
+    };
+
+    try {
+        const res = await fetch(API + "/api/submit-login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (!data.success) {
+            setStatus(data.message || "Login failed", "error");
+            btn.disabled = false;
+            await refreshCaptcha();
+            return;
+        }
+
+        fullResultData = Array.isArray(data.payload) ? data.payload : [data.payload];
+        processAndDisplayResults(fullResultData);
+        
+    } catch (error) {
+        setStatus("Connection error.", "error");
+        btn.disabled = false;
+        await refreshCaptcha();
+    }
+}
+
+// ------------------------------------------------------------------
+// DATA PROCESSING & LOGIC UPDATES
+// ------------------------------------------------------------------
+
+function processAndDisplayResults(results) {
+    if (!results || results.length === 0) {
+        alert("No results found!");
+        return;
+    }
+    
+    groupedData = {};
+    let totalSGPA = 0;
+    let semesterCount = 0;
+
+    // 1. Group Data by Semester
+    results.forEach(record => {
+        const semKey = `Semester${record.euno}`;
+        if (!groupedData[semKey]) {
+            groupedData[semKey] = {
+                subjects: [],
+                meta: record // Store metadata from first record of semester
+            };
+        }
+        groupedData[semKey].subjects.push(record);
+    });
+
+    // 2. Calculate Overall CGPA
+    // Iterate over unique semesters to average the eugpa (SGPA)
+    Object.keys(groupedData).forEach(semKey => {
+        const semMeta = groupedData[semKey].meta;
+        const sgpa = parseFloat(semMeta.eugpa) || 0;
+        
+        // Only count if SGPA is valid and greater than 0 (avoiding absent semesters)
+        if (sgpa > 0) {
+            totalSGPA += sgpa;
+            semesterCount++;
+        }
+    });
+
+    const overallCGPA = semesterCount > 0 ? (totalSGPA / semesterCount).toFixed(2) : "N/A";
+
+    // 3. Switch View
+    document.getElementById("loginPage").style.display = "none";
+    document.getElementById("resultView").style.display = "block";
+    
+    displayStudentHeader(results[0], overallCGPA);
+    displaySemesterButtons();
+    
+    // Show most recent semester by default
+    const semesters = Object.keys(groupedData).sort((a, b) => {
+        return parseInt(a.replace('Semester', '')) - parseInt(b.replace('Semester', ''));
+    });
+    
+    if (semesters.length > 0) {
+        showSemester(semesters[semesters.length - 1]); // Show last available semester
+    }
+}
+
+function displayStudentHeader(firstRecord, overallCGPA) {
+    // Logic: Lateral entry if Semester 1 and Semester 2 are missing
+    const hasSem1 = groupedData['Semester1'];
+    const hasSem2 = groupedData['Semester2'];
+    const isLateral = !hasSem1 && !hasSem2;
+
+    // Logic: Batch is always byoa to byoa+4
+    const startYear = parseInt(firstRecord.byoa);
+    const endYear = startYear + 4;
+    const batchStr = `${startYear} - ${endYear}`;
+
+    const html = `
+        <h2>Student Information 
+            ${isLateral ? '<span class="lateral-badge">Lateral Entry</span>' : ''}
+        </h2>
+        <div class="student-info">
+            <div class="info-item">
+                <div class="info-label">Name</div>
+                <div class="info-value">${firstRecord.stname || 'N/A'}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Enrollment No</div>
+                <div class="info-value">${firstRecord.nrollno || 'N/A'}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Father's Name</div>
+                <div class="info-value">${firstRecord.father || 'N/A'}</div>
+            </div>
+             <div class="info-item">
+                <div class="info-label">Batch</div>
+                <div class="info-value">${batchStr}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Admission Year</div>
+                <div class="info-value">${firstRecord.yoa || 'N/A'}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Programme</div>
+                <div class="info-value">${firstRecord.prgname || 'N/A'}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Institution</div>
+                <div class="info-value">${firstRecord.iname || 'N/A'}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Overall CGPA</div>
+                <div class="info-value" style="color: #4ade80; font-size: 1.4rem;">${overallCGPA}</div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('studentHeader').innerHTML = html;
+}
+
+function displaySemesterButtons() {
+    const semesters = Object.keys(groupedData).sort((a, b) => {
+        return parseInt(a.replace('Semester', '')) - parseInt(b.replace('Semester', ''));
+    });
+    
+    const html = semesters.map(sem => {
+        const semNum = sem.replace('Semester', '');
+        return `<button class="sem-btn" onclick="showSemester('${sem}')">Semester ${semNum}</button>`;
+    }).join('');
+    
+    document.getElementById('semesterSelector').innerHTML = html;
+}
+
+function showSemester(semesterKey) {
+    currentSemester = semesterKey;
+    const semData = groupedData[semesterKey];
+    
+    // Update active button
+    document.querySelectorAll('.sem-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.sem-btn').forEach(btn => {
+        if (btn.textContent.includes(`Semester ${semesterKey.replace('Semester', '')}`)) {
+            btn.classList.add('active');
+        }
+    });
+    
+    const html = `
+        <div class="result-card" id="semesterCard">
+            <h3>Semester ${semesterKey.replace('Semester', '')} Result 
+                <span style="float:right; font-size:0.9rem; color:#94a3b8">
+                    Exam: ${semData.meta.rmonth}/${semData.meta.ryear}
+                </span>
+            </h3>
+            
+            ${displaySubjects(semData.subjects)}
+            
+            ${displaySummary(semData)}
+        </div>
+    `;
+    
+    document.getElementById('resultContent').innerHTML = html;
+}
+
+// Updated GGSIPU Grading Logic
+function calculateGrade(marks) {
+    marks = parseInt(marks) || 0;
+    if (marks >= 90) return { grade: 'O', class: 'grade-O' };
+    if (marks >= 75) return { grade: 'A+', class: 'grade-A-plus' };
+    if (marks >= 65) return { grade: 'A', class: 'grade-A' };
+    if (marks >= 55) return { grade: 'B+', class: 'grade-B-plus' };
+    if (marks >= 50) return { grade: 'B', class: 'grade-B' };
+    if (marks >= 45) return { grade: 'C', class: 'grade-C' };
+    if (marks >= 40) return { grade: 'P', class: 'grade-P' };
+    return { grade: 'F', class: 'grade-F' };
+}
+
+function displaySubjects(subjects) {
+    if (!subjects || subjects.length === 0) return '<p>No subjects found</p>';
+    
+    const rows = subjects.map(sub => {
+        const total = sub.moderatedprint || '-';
+        const gradeInfo = calculateGrade(total);
+        
+        return `
+            <tr>
+                <td>${sub.papercode || ''}</td>
+                <td>${sub.papername || ''}</td>
+                <td>${sub.minorprint || '-'}</td>
+                <td>${sub.majorprint || '-'}</td>
+                <td><strong>${total}</strong></td>
+                <td><span class="grade-badge ${gradeInfo.class}">${gradeInfo.grade}</span></td>
+            </tr>
+        `;
+    }).join('');
+    
+    return `
+        <div class="table-responsive">
+            <table class="subjects-table">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Subject</th>
+                        <th>Internal</th>
+                        <th>External</th>
+                        <th>Total</th>
+                        <th>Grade</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>
+    `;
+}
+
+function displaySummary(semData) {
+    // Note: eugpa is the Semester GPA (SGPA) for this semester
+    const sgpa = semData.meta.eugpa || 'N/A';
+    const totalSubjects = semData.subjects.length;
+    
+    return `
+        <div class="summary-grid">
+            <div class="summary-item">
+                <div class="summary-label">Semester SGPA</div>
+                <div class="summary-value">${sgpa}</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">Total Subjects</div>
+                <div class="summary-value">${totalSubjects}</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">Status</div>
+                <div class="summary-value" style="color:${semData.meta.statuscode == '08' ? '#4ade80' : '#ef4444'}">
+                    ${semData.meta.statuscode == '08' ? 'Passed' : 'Fail/Reappear'}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+async function exportCurrentSemester() {
+    if (!currentSemester) return;
+    const { jsPDF } = window.jspdf;
+    
+    // We need to capture both the header and the specific semester card
+    const header = document.getElementById('studentHeader');
+    const card = document.getElementById('semesterCard');
+    
+    // Create a temp container to combine them for the PDF
+    const tempContainer = document.createElement('div');
+    tempContainer.style.background = "#1e293b";
+    tempContainer.style.padding = "20px";
+    tempContainer.style.width = "800px"; // Fixed width for consistent PDF
+    tempContainer.style.color = "white";
+    
+    tempContainer.appendChild(header.cloneNode(true));
+    tempContainer.appendChild(card.cloneNode(true));
+    
+    document.body.appendChild(tempContainer);
+
+    try {
+        const canvas = await html2canvas(tempContainer, {
+            backgroundColor: '#1e293b',
+            scale: 2
+        });
+        
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        
+        const studentInfo = groupedData[currentSemester].meta;
+        pdf.save(`${studentInfo.stname}_${currentSemester}.pdf`);
+    } catch (error) {
+        alert('Failed to export PDF.');
+    } finally {
+        document.body.removeChild(tempContainer);
+    }
+}
+
+function setStatus(message, type = "info") {
+    const status = document.getElementById("statusMsg");
+    status.textContent = message;
+    status.className = "status " + type;
+}
+</script>
+
+</body>
+</html>
